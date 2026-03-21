@@ -13,7 +13,7 @@ steps:
     terraformVersion: 'latest'
 
 - script: |
-    terraform init
+    terraform init -upgrade
     terraform plan -out=tfplan
     terraform apply -auto-approve tfplan
   displayName: 'Terraform Deploy'

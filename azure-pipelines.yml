@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  vmImage: 'bankafeh-self'
+  name: 'bankafeh-self'
 
 variables:
   - group: AWS_KEYS

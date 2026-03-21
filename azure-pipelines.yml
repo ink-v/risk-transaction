@@ -1,0 +1,22 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: AWS_KEYS # Grupo de variables con tu Access Key y Secret Key
+
+steps:
+- task: TerraformInstaller@0
+  inputs:
+    terraformVersion: 'latest'
+
+- script: |
+    terraform init
+    terraform plan -out=tfplan
+    terraform apply -auto-approve tfplan
+  displayName: 'Terraform Deploy'
+  env:
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_KEY)

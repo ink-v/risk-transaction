@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: AWS_KEYS # Grupo de variables con tu Access Key y Secret Key
+  - group: AWS_KEYS
 
 steps:
 - task: TerraformInstaller@0

@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'bankafeh-self'
 
 variables:
   - group: AWS_KEYS

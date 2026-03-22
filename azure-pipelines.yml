@@ -18,9 +18,13 @@ steps:
   displayName: 'Prepare Lambda Package'
 
 - script: |
-    echo "Starting deployment with Terraform..."
+    echo "=== TERRAFORM INIT ==="
     terraform init -upgrade -input=false
+
+    echo "=== TERRAFORM PLAN ==="
     terraform plan -out=tfplan -input=false
+
+    echo "=== TERRAFORM APPLY ==="
     terraform apply -auto-approve tfplan
   displayName: 'Terraform Infrastructure & Deployment'
   env:

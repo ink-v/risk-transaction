@@ -12,11 +12,18 @@ steps:
   inputs:
     terraformVersion: 'latest'
 
+- script: |   
+    echo "Installing dependencies in the src folder..."   
+    pip install --upgrade -r src/requirements.txt -t src/ --no-cache-dir
+  displayName: 'Prepare Lambda Package'
+
 - script: |
-    terraform init -upgrade
-    terraform plan -out=tfplan
+    echo "Starting deployment with Terraform..."
+    terraform init -upgrade -input=false
+    terraform plan -out=tfplan -input=false
     terraform apply -auto-approve tfplan
-  displayName: 'Terraform Deploy'
+  displayName: 'Terraform Infrastructure & Deployment'
   env:
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_KEY)
+    AWS_DEFAULT_REGION: 'us-east-1' 

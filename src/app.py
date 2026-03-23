@@ -5,6 +5,8 @@ import uuid
 import joblib
 
 from datetime import datetime, timezone
+import pandas as pd 
+
 
 # Load the model when Lambda starts (warm start).
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model_v1.pkl')

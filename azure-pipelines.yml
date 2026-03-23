@@ -22,21 +22,24 @@ stages:
         echo "Creating dist directory..."
         if not exist dist mkdir dist
 
-        echo "Installing Lambda layer dependencies..."
+        echo "Installing data-core layer dependencies (pandas)..."
         python -m pip install --upgrade pip
-        python -m pip install -r layers\requirements.txt -t layers\python-deps
+        python -m pip install -r layers\data-core\requirements.txt -t layers\data-core\python
 
-        echo "Installing Lambda function dependencies (scikit-learn)..."
-        python -m pip install -r src\requirements.txt -t src
+        echo "Installing ml-core layer dependencies (scikit-learn + joblib)..."
+        python -m pip install -r layers\ml-core\requirements.txt -t layers\ml-core\python
 
-        echo "Zipping Lambda layer..."
-        powershell -Command "Compress-Archive -Path layers\python-deps\* -DestinationPath dist\python-deps-layer.zip -Force"
+        echo "Zipping data-core layer..."
+        powershell -Command "Compress-Archive -Path layers\data-core\python\* -DestinationPath dist\data-core-layer.zip -Force"
+
+        echo "Zipping ml-core layer..."
+        powershell -Command "Compress-Archive -Path layers\ml-core\python\* -DestinationPath dist\ml-core-layer.zip -Force"
 
         echo "Zipping Lambda function code..."
         powershell -Command "Compress-Archive -Path src\* -DestinationPath dist\lambda-code.zip -Force"
 
         echo "Build artifacts created in dist\"
-      displayName: 'Build lambda-code.zip and python-deps-layer.zip'
+      displayName: 'Build lambda-code.zip and both layers'
 
     - task: PublishBuildArtifacts@1
       inputs:

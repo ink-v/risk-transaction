@@ -10,8 +10,9 @@ resource "null_resource" "build_python_layer" {
       echo Building Python deps layer...
       if exist layers\\python-deps rmdir /S /Q layers\\python-deps
       mkdir layers\\python-deps
-      pip install --upgrade pip
-      pip install -r layers\\requirements.txt -t layers\\python-deps
+      pip --version || (echo pip not found & exit /b 1)
+      pip install --upgrade pip || exit /b 1
+      pip install -r layers\\requirements.txt -t layers\\python-deps || exit /b 1
     EOT
   }
 }

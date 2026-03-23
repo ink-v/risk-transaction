@@ -3,8 +3,7 @@ import boto3
 import os
 import uuid
 import joblib
-import pandas as pd
-from datetime import datetime
+
 from datetime import datetime, timezone
 
 # Load the model when Lambda starts (warm start).

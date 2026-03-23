@@ -5,10 +5,16 @@ import uuid
 import joblib
 import pandas as pd
 from datetime import datetime
+from datetime import datetime, timezone
 
 # Load the model when Lambda starts (warm start).
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model_v1.pkl')
 model = joblib.load(MODEL_PATH)
+
+TABLE_NAME = os.environ.get('TABLE_NAME', 'BankingTransactions')
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(TABLE_NAME)
+
 
 def lambda_handler(event, context):
     try:
@@ -25,15 +31,17 @@ def lambda_handler(event, context):
         fraud_probability = model.predict_proba(input_data)[0][1]
         
         status = "DECLINED" if fraud_probability > 0.6 else "APPROVED"
-        risk_score = round(float(fraud_probability), 2)
+        risk_score = round(float(fraud_probability), 2)        
+        customer_id = body.get('customer_id', '')
+        timestamp = datetime.now(timezone.utc).isoformat()
 
         transaction_data = {
             'transaction_id': str(uuid.uuid4()),
             'customer_id': customer_id,
-            'amount': amount,
+            'amount': monto,
             'status': status,
             'risk_score': str(risk_score),
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': timestamp
         }
 
         table.put_item(Item=transaction_data)

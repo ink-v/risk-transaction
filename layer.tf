@@ -1,7 +1,3 @@
-locals {
-  artifacts_dir = "${path.root}/lambda-artifacts"
-}
-
 resource "aws_lambda_layer_version" "python_deps" {
   layer_name          = "pandas-sklearn-layer"
   filename            = "${local.artifacts_dir}/python-deps-layer.zip"

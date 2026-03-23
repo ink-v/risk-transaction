@@ -1,8 +1,8 @@
-# Construir dependencias de Python para la Layer
 resource "null_resource" "build_python_layer" {
   triggers = {
-    requirements_hash = filemd5("${path.module}/layers/requirements.txt")
+    requirements_hash = filemd5("${path.root}/layers/requirements.txt")
   }
+
 
   provisioner "local-exec" {
     interpreter = ["cmd", "/C"]

@@ -15,11 +15,7 @@ stages:
   - job: BuildArtifacts
     displayName: 'Build ZIP artifacts'
     steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.x'
-      displayName: 'Use Python 3'
-
+    
     - script: |
         echo "Creating dist directory..."
         if not exist dist mkdir dist

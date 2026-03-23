@@ -19,8 +19,8 @@ resource "null_resource" "build_python_layer" {
 data "archive_file" "python_layer_zip" {
   depends_on  = [null_resource.build_python_layer]
   type        = "zip"
-  source_dir  = "${path.module}/layers/python-deps"
-  output_path = "${path.module}/dist/python-deps-layer.zip"
+  source_dir  = "${path.root}/layers/python-deps"
+  output_path = "${path.root}/dist/python-deps-layer.zip"
 }
 
 resource "aws_lambda_layer_version" "python_deps" {

@@ -2,27 +2,35 @@ import json
 import boto3
 import os
 import uuid
+import joblib
+import pandas as pd
 from datetime import datetime
-import pandas as pd 
 
-TABLE_NAME = os.environ.get('TABLE_NAME', 'BankingTransactions')
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(TABLE_NAME)
+# Load the model when Lambda starts (warm start).
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model_v1.pkl')
+model = joblib.load(MODEL_PATH)
 
 def lambda_handler(event, context):
     try:
         body = event if isinstance(event, dict) else json.loads(event.get('body', '{}'))
         
-        monto = body.get('monto', 0)
-        id_cliente = body.get('id_cliente', 'ANONYMOUS')
+        monto = float(body.get('monto', 0))
+        hora = int(datetime.now().hour)  # Use the current hour as a model feature.
         
-        risk_score = 0.95 if monto > 5000 else 0.05
-        status = "RECHAZADA" if risk_score > 0.5 else "APROBADA"
+        # Build input data using the same schema as training.
+        input_data = pd.DataFrame([[monto, hora]], columns=['monto', 'hora'])
+        
+        # Run the model and take the fraud probability
+        # Returns prediction of the probability
+        fraud_probability = model.predict_proba(input_data)[0][1]
+        
+        status = "DECLINED" if fraud_probability > 0.6 else "APPROVED"
+        risk_score = round(float(fraud_probability), 2)
 
         transaction_data = {
             'transaction_id': str(uuid.uuid4()),
-            'id_cliente': id_cliente,
-            'monto': monto,
+            'customer_id': customer_id,
+            'amount': amount,
             'status': status,
             'risk_score': str(risk_score),
             'timestamp': datetime.utcnow().isoformat()
@@ -31,17 +39,12 @@ def lambda_handler(event, context):
         table.put_item(Item=transaction_data)
 
         return {
-            'statusCode': 200,
-            'body': json.dumps({
-                "transaction_id": transaction_data['transaction_id'],
+            "statusCode": 200,
+            "body": json.dumps({
                 "decision": status,
-                "score": risk_score
+                "fraud_score": risk_score,
+                "method": "RandomForest-Inference"
             })
         }
-
     except Exception as e:
-        print(f"Error crítico: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({"error": "Error procesando la transacción financiera"})
-        }
+        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}

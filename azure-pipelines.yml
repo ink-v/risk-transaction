@@ -26,6 +26,9 @@ stages:
         python -m pip install --upgrade pip
         python -m pip install -r layers\requirements.txt -t layers\python-deps
 
+        echo "Installing Lambda function dependencies (scikit-learn)..."
+        python -m pip install -r src\requirements.txt -t src
+
         echo "Zipping Lambda layer..."
         powershell -Command "Compress-Archive -Path layers\python-deps\* -DestinationPath dist\python-deps-layer.zip -Force"
 

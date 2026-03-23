@@ -14,7 +14,9 @@ stages:
   jobs:
   - job: BuildArtifacts
     displayName: 'Build ZIP artifacts'
+         
     steps:
+    - checkout: self
     
     - script: |
         echo "Creating dist directory..."
@@ -44,9 +46,15 @@ stages:
   displayName: 'Deploy with Terraform'
   dependsOn: Build
   jobs:
-  - job: Terraform
-    displayName: 'Terraform Infrastructure & Deployment'
+  - job: DeployInfra
+    displayName: 'Terraform Plan & Apply'
+   
+    variables:
+      TF_IN_AUTOMATION: 'true'
+
     steps:
+    - checkout: self
+
     - task: DownloadBuildArtifacts@0
       inputs:
         buildType: 'current'

@@ -59,7 +59,8 @@ resource "aws_lambda_function" "banking_lambda" {
   source_code_hash = filebase64sha256("${local.artifacts_dir}/lambda-code.zip")
 
   layers = [
-    aws_lambda_layer_version.python_deps.arn
+    aws_lambda_layer_version.data_core.arn,
+    aws_lambda_layer_version.ml_core.arn
   ]
   environment {
     variables = {

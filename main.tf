@@ -59,6 +59,9 @@ resource "aws_lambda_function" "banking_lambda" {
   handler          = "app.lambda_handler"
   runtime          = "python3.12"
 
+  layers = [
+    aws_lambda_layer_version.python_deps.arn
+  ]
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.transactions_table.name

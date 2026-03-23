@@ -22,10 +22,8 @@ resource "aws_dynamodb_table" "transactions_table" {
   }
 }
 
-data "archive_file" "lambda_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/src"
-  output_path = "${path.module}/lambda_function.zip"
+locals {
+  artifacts_dir = "${path.root}/lambda-artifacts"
 }
 
 resource "aws_iam_role" "lambda_role" {
@@ -51,13 +49,14 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_lambda_function" "banking_lambda" {
-  filename         = data.archive_file.lambda_zip.output_path
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+resource "aws_lambda_function" "banking_lambda" { 
   function_name    = "transaction-validator-risk"
   role             = aws_iam_role.lambda_role.arn
   handler          = "app.lambda_handler"
   runtime          = "python3.12"
+
+  filename         = "${local.artifacts_dir}/lambda-code.zip"
+  source_code_hash = filebase64sha256("${local.artifacts_dir}/lambda-code.zip")
 
   layers = [
     aws_lambda_layer_version.python_deps.arn

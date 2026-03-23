@@ -7,27 +7,76 @@ pool:
 variables:
   - group: AWS_KEYS
 
-steps:
-- task: TerraformInstaller@0
-  inputs:
-    terraformVersion: 'latest'
+stages:
 
-- script: |   
-    echo "Installing dependencies in the src folder..."   
-    pip install --upgrade -r src/requirements.txt -t src/ --no-cache-dir
-  displayName: 'Prepare Lambda Package'
+- stage: Build
+  displayName: 'Build Lambda & Layer'
+  jobs:
+  - job: BuildArtifacts
+    displayName: 'Build ZIP artifacts'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+      displayName: 'Use Python 3'
 
-- script: |
-    echo "=== TERRAFORM INIT ==="
-    terraform init -upgrade -input=false
+    - script: |
+        echo "Creating dist directory..."
+        if not exist dist mkdir dist
 
-    echo "=== TERRAFORM PLAN ==="
-    terraform plan -out=tfplan -input=false
+        echo "Installing Lambda layer dependencies..."
+        python -m pip install --upgrade pip
+        python -m pip install -r layers\requirements.txt -t layers\python-deps
 
-    echo "=== TERRAFORM APPLY ==="
-    terraform apply -auto-approve tfplan
-  displayName: 'Terraform Infrastructure & Deployment'
-  env:
-    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY)
-    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_KEY)
-    AWS_DEFAULT_REGION: 'us-east-1' 
+        echo "Zipping Lambda layer..."
+        powershell -Command "Compress-Archive -Path layers\python-deps\* -DestinationPath dist\python-deps-layer.zip -Force"
+
+        echo "Zipping Lambda function code..."
+        powershell -Command "Compress-Archive -Path src\* -DestinationPath dist\lambda-code.zip -Force"
+
+        echo "Build artifacts created in dist\"
+      displayName: 'Build lambda-code.zip and python-deps-layer.zip'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'dist'
+        ArtifactName: 'lambda-artifacts'
+        publishLocation: 'Container'
+      displayName: 'Publish ZIP artifacts'
+
+- stage: Deploy
+  displayName: 'Deploy with Terraform'
+  dependsOn: Build
+  jobs:
+  - job: Terraform
+    displayName: 'Terraform Infrastructure & Deployment'
+    steps:
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'lambda-artifacts'
+        downloadPath: '$(System.DefaultWorkingDirectory)'
+      displayName: 'Download build artifacts'
+
+    - task: TerraformInstaller@0
+      inputs:
+        terraformVersion: 'latest'
+
+    - script: |
+        echo "Listing downloaded artifacts..."
+        dir "$(System.DefaultWorkingDirectory)\lambda-artifacts"
+
+        echo "=== TERRAFORM INIT ==="
+        terraform init -upgrade -input=false
+
+        echo "=== TERRAFORM PLAN ==="
+        terraform plan -out=tfplan -input=false
+
+        echo "=== TERRAFORM APPLY ==="
+        terraform apply -auto-approve tfplan
+      displayName: 'Terraform Infrastructure & Deployment'
+      env:
+        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY)
+        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_KEY)
+        AWS_DEFAULT_REGION: 'us-east-1'

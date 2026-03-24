@@ -26,7 +26,7 @@ stages:
         python -m pip install --upgrade pip
         python -m pip install -r layers\data-core\requirements.txt -t layers\data-core\python
 
-        echo "Installing ml-core layer dependencies (scikit-learn + joblib)..."
+        echo "Installing ml-core layer dependencies (joblib)..."
         python -m pip install -r layers\ml-core\requirements.txt -t layers\ml-core\python
 
         echo "Zipping data-core layer..."

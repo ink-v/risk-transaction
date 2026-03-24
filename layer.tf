@@ -1,4 +1,4 @@
-resource "aws_lambda_layer_version" "python_deps" {
+resource "aws_lambda_layer_version" "data_core" {
   layer_name          = "data-core-layer"
   filename            = "${local.artifacts_dir}/data-core-layer.zip"
   source_code_hash    = filebase64sha256("${local.artifacts_dir}/data-core-layer.zip")

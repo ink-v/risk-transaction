@@ -52,7 +52,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 resource "aws_lambda_function" "banking_lambda" { 
   function_name    = "transaction-validator-risk"
   role             = aws_iam_role.lambda_role.arn
-  handler          = "app.lambda_handler"
+  handler          = "lambda_handler.handler"
   runtime          = "python3.12"
 
   filename         = "${local.artifacts_dir}/lambda-code.zip"
